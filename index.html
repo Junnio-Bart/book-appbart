@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+    <title>BooK – Leitura Diária</title>
+  
+    <!-- PWA / Manifesto -->
+    <link rel="manifest" href="./manifest.webmanifest">
+  
+    <!-- iOS WebApp -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="BooK">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./public/icons/icon-192.png">
+  
+    <!-- Tema -->
+    <meta name="theme-color" content="#0f172a">
+  
+    <!-- Estilos -->
+    <link rel="stylesheet" href="./src/css/main.css">
+  
+    <!-- Scripts -->
+    <script defer src="./src/js/app.js"></script>
+  </head>
+  
+
+  <body> 
+    <header>
+      <img src="/book-logo.png" alt="BooK" class="logo-img" />
+
+      <div class="tabs">
+        <div class="tabs-left">
+          <button id="drawerToggle" class="hamburger" title="mostrar/ocultar menu">☰</button>
+          <button class="tab active" data-page="progresso">Progresso</button>
+        </div>
+        <div class="tabs-right">
+          <button class="tab" data-page="lendo">Timer</button>
+          <button class="tab" data-page="diario">Diário</button>
+        </div>
+      </div>
+
+      <!-- barra com o nome do livro atual… -->
+      <div id="currentBookBar" class="current-book">
+        <span id="currentBookName"></span>
+        <span id="currentBookStatus"></span>
+      </div>    
+    </header>
+
+    <main>
+      <!-- ========================= PROGRESSO ========================= -->
+      <section id="page-progresso" class="page active">
+        <div id="drawer" class="drawer card">
+          <div class="book-row">
+            <div class="book-col">
+              <label>Livro</label>
+              <select id="bookSelect" class="book-select"></select>
+            </div>
+            <div class="book-add">
+              <button id="addBookBtn" class="btn green solid" title="Adicionar novo livro">+</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Meta do dia (páginas)</label>
+              <input id="goal" type="number" min="1" step="1" />
+            </div>
+            <div>
+              <label>Ritmo (páginas por minuto)</label>
+              <input id="ppm" type="number" min="0.1" step="0.01" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px;">
+            <div>
+              <label>Ciclo (minutos)</label>
+              <input id="interval" type="number" min="1" step="1" />
+            </div>
+            <div>
+              <label>Páginas do livro</label>
+              <button id="pagesPill" class="pages-pill" type="button" title="Editar páginas">
+                <span class="pill-label">Lidas</span>
+                <span class="pill-badge pill-gray"><b id="pillRead">0</b> / <b id="pillTotal">0</b></span>
+              </button>
+            </div>            
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="stats">
+            <div class="pill">
+              <div class="big" id="pagesLeft">0</div>
+              <div class="sub">Restantes</div>
+            </div>
+            <div class="pill">
+              <div class="big" id="eta">0 min</div>
+              <div class="sub">Tempo estimado</div>
+            </div>
+            <div class="pill">
+              <div class="big" id="pace">0</div>
+              <div class="sub">Pág/ciclo</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card grid-wrap">
+          <div class="grid-flex">
+            <div id="grid" class="grid"></div>
+            <div class="side">
+              <div class="side-pill">
+                <div class="side-label">Páginas do dia</div>
+                <div id="dayCount" class="side-big">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="legend">
+            <span><span class="dot" style="background:var(--cell-done)"></span>concluído</span>
+            <span><span class="dot" style="background:#0b1220;border:1px solid #1f2937"></span>a ler</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="controls">
+            <div class="top">
+              <button class="btn green" id="plus1">+1 pág</button>
+              <button class="btn blue" id="cycleDone">+1 ciclo</button>
+              <button class="btn green" id="minus1">−1 pág</button>
+            </div>
+            <div class="bottom">
+              <button class="btn warn" id="saveDay">Gravar dia</button>
+              <button class="btn danger" id="clearAll">Limpar tudo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================== TIMER =========================== -->
+      <section id="page-lendo" class="page">
+        <div class="card timer">
+          <div class="row-two">
+            <div>
+              <label>Duração (min)</label>
+              <input id="timerMinutes" type="number" min="1" step="1" value="25" />
+            </div>
+            <div>
+              <label>Páginas por meta (opcional)</label>
+              <input id="timerTargetPages" type="number" min="1" step="1" placeholder="ex.: 10" />
+            </div>
+          </div>
+
+          <div class="timer-select-wrap">
+            <div class="timer-select">
+              <label>Livro</label>
+              <select id="timerBookSelect"></select>
+            </div>
+          </div>
+
+          <div class="timer-box">
+            <div class="display" id="timerDisplay">25:00</div>
+          </div>
+
+          <div class="btnbar">
+            <button class="btn timerCtl green" id="timerStart">iniciar</button>
+            <button class="btn timerCtl green" id="timerPause">pausa</button>
+            <button class="btn timerCtl danger" id="timerReset">zerar</button>
+          </div>
+
+          <div class="commit-row">
+            <div>
+              <label>Páginas lidas nesta sessão</label>
+              <input id="timerPagesRead" type="number" min="0" step="1" value="0" />
+            </div>
+            <button class="btn green" id="timerCommit">Adicionar ao progresso</button>
+          </div>
+        </div>
+      </section>
+
+            <!-- =========================== DIÁRIO ========================== -->
+      <section id="page-diario" class="page">
+      
+
+      <!-- ===== Faixa de calendário (card próprio) ===== -->
+      <div class="card" id="calendarStripCard">
+        <div class="calendar-strip">
+          <!-- ano (mesma linha dos meses, à esquerda) -->
+          <button id="yearButton" class="year-pill" type="button">
+            <span id="calYear">2025</span>
+          </button>
+
+          <!-- Modal do seletor de ano -->
+          <div id="yearPickerModal" class="modal hidden">
+            <div class="modal-card year-card">
+              <div class="year-title">Ano</div>
+              <div class="year-dial">
+                <button id="ypPrev" class="year-arrow play-left" aria-label="Anterior"></button>
+                
+                <div id="ypYears" class="years-row">
+                </div>
+                <button id="ypNext" class="year-arrow play-right" aria-label="Próximo"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- meses em FILA com setas nas pontas -->
+          <div class="months-bar">
+            <button id="calPrev" class="arrow" type="button" aria-label="Mês anterior">◀</button>
+            <div class="months-viewport">
+              <div id="calMonths" class="months"></div>
+            </div>
+            <button id="calNext" class="arrow" type="button" aria-label="Próximo mês">▶</button>
+          </div>
+
+          <!-- âncora “hoje” (linha abaixo) -->
+          <button id="todayAnchor" class="today-pill" type="button">01 - seg</button>
+        </div>
+      </div>
+
+
+
+      <!-- ===== Contadores (card separado) ===== -->
+      <div class="card">
+        <div class="diary-header">
+          <div class="counter">
+            <div class="num" id="cntMonth">0</div>
+            <div class="lbl">Concluídos no mês</div>
+          </div>
+          <div class="counter">
+            <div class="num" id="cntYear">0</div>
+            <div class="lbl">Concluídos no ano</div>
+          </div>
+        </div>
+      </div>
+
+     
+      <!-- estante -->
+      <div class="card">
+        <div id="shelf" class="shelf"></div>
+
+        <!-- botões: agora embaixo e discretos -->
+        <div class="diary-bar bottom">
+          <button class="btn ghost sm" id="exportCsv">Exportar CSV</button>
+          <button class="btn ghost sm" id="shelfSelectToggle">Selecionar</button>
+          <button class="btn danger sm hidden" id="shelfBulkDelete" type="button">
+            🗑 Apagar (<span id="selectedCount">0</span>)
+          </button>
+          <button class="btn ghost sm" id="clearDiary">Limpar diário</button>
+        </div>
+      </div>
+      </section>
+
+    </main>
+
+    <footer>
+      PWA habilitado: funciona offline e pode ser instalado. (Menu do navegador → “Instalar app”.)
+    </footer>
+
+    <!-- ===================== MODAL: adicionar livro ===================== -->
+    <div id="bookModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <h3 id="modalTitle">Novo livro</h3>
+
+        <div class="row">
+          <div>
+            <label>Nome do livro</label>
+            <input id="bk_title" type="text" placeholder="ex.: Hábitos Atômicos" />
+          </div>
+          <div>
+            <label>Autor (opcional)</label>
+            <input id="bk_author" type="text" placeholder="ex.: James Clear" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Total de páginas</label>
+            <input id="bk_pages" type="number" min="1" step="1" placeholder="ex.: 320" />
+          </div>
+          <div>
+            <label>Status</label>
+            <div class="chips" id="bk_status">
+              <button data-v="novo" class="chip active" type="button">novo</button>
+              <button data-v="lendo" class="chip" type="button">lendo</button>
+              <button data-v="relendo" class="chip" type="button">relendo</button>
+            </div>
+          </div>
+        </div>
+        
+
+        <!-- upload/preview da capa -->
+        <div class="cover-upload" style="margin-top:8px;">
+          <img id="bk_cover_preview" class="cover-preview" alt="Prévia da capa" />
+          <div>
+            <label>Capa do livro (opcional)</label>
+            <input id="bk_cover" type="file" accept="image/*" />
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+              Se não enviar, será usada uma capa padrão.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="bk_save" class="btn green" type="button">Salvar</button>
+          <button id="bk_cancel" class="btn ghost" type="button">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+        <!-- ===================== MODAL: detalhes do livro ===================== -->
+    <div id="bookDetailModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="bd_title">
+      <div class="modal-card detail-card" tabindex="-1">
+        <button class="modal-x" id="bd_x" aria-label="Fechar">✕</button>
+
+        <h3 id="bd_title" class="detail-title">Livro</h3>
+        <div class="detail-grid">
+          <div class="detail-cover">
+            <img id="bd_cover" alt="Capa" />
+          </div>
+          <div class="detail-meta">
+            <div class="meta-line"><strong>Autor:</strong> <span id="bd_author">—</span></div>
+            <div class="meta-line"><strong>Páginas:</strong> <span id="bd_pages">0</span></div>
+            <div class="meta-line"><strong>Tempo total:</strong> <span id="bd_time">0 min</span></div>
+            <div class="meta-line"><strong>Velocidade média:</strong> <span id="bd_speed">0 pág/min</span></div>
+
+            <div class="avg-stars-wrap">
+              <span class="avg-label">Minha média:</span>
+              <div id="bd_avgStars" class="stars"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="logs">
+          <div class="logs-title">Registros</div>
+          <div id="bd_logs" class="logs-list"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="bd_delete" class="btn danger" type="button">🗑️ Apagar</button>
+          <button id="bd_close" class="btn ghost" type="button">Fechar</button>
+        </div>
+
+        <!-- modal de confirmação -->
+        <div id="confirmDeleteModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cd_title">
+          <div class="modal-card modal-small">
+            <h3 id="cd_title">Apagar livro?</h3>
+            <p>Tem certeza que deseja apagar <strong id="cd_bookTitle">este livro</strong> e todos os registros? Esta ação não pode ser desfeita.</p>
+            <div class="modal-actions">
+              <button id="cd_yes" class="btn green"  type="button">Sim, apagar</button>
+              <button id="cd_no"  class="btn danger" type="button">Não</button>
+            </div>
+          </div>
+        </div><!-- fim confirmDeleteModal -->
+
+      </div>
+    </div>
+
+    <!-- MODAL: editar páginas do livro -->
+    <div id="pagesEditModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pe_title">
+      <div class="modal-card modal-small">
+        <h3 id="pe_title">Páginas do livro</h3>
+
+        <div class="row">
+          <div>
+            <label>Páginas lidas</label>
+            <input id="pe_read" type="number" min="0" step="1" />
+          </div>
+          <div>
+            <label>Páginas totais</label>
+            <input id="pe_total" type="number" min="1" step="1" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="pe_cancel" class="btn ghost" type="button">Cancelar</button>
+          <button id="pe_save"   class="btn green" type="button">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================== MODAL: review ao gravar ===================== -->
+    <div id="reviewModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="rv_title">
+      <div class="modal-card small" tabindex="-1">
+        <button class="modal-x" id="rv_x" aria-label="Fechar">✕</button>
+        <h3 id="rv_title">Como foi a leitura?</h3>
+
+        <div class="review-grid">
+          <div class="review-stars" id="rv_stars"></div>
+          <div>
+            <label>Comentário</label>
+            <textarea id="rv_note" rows="4" style="width:100%;resize:vertical;background:#0b1220;border:1px solid #334155;color:var(--text);border-radius:10px;padding:10px"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="rv_cancel" class="btn ghost" type="button">Cancelar</button>
+          <button id="rv_save" class="btn green" type="button">Gravar registro</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Concluídos (mês/ano) -->
+    <div id="finishedModal" class="modal hidden">
+      <div class="modal-card finished-card">
+        <div class="fm-head">
+          <div class="fm-title" id="fmTitle">Abril • 2025</div>
+          <button id="fmClose" class="fm-x" aria-label="Fechar">×</button>
+        </div>
+
+       <!-- medidor de meta -->
+      <div class="fm-meter">
+        <div class="fm-row">
+          <span class="fm-label">Meta</span>
+
+          <div class="fm-end">
+            <span class="fm-value" id="fmGoal">—</span>
+            <button id="fmEditMeta" class="fm-x fm-edit" title="Editar meta">✎</button>
+          </div>
+        </div>
+        
+        <div class="progress-bar fm-bar" id="fmBar">
+          <span id="fmBarFill"></span>
+        </div>
+
+        <div class="fm-row">
+          <span class="fm-label">Concluídos</span>
+          <span class="fm-value" id="fmDone">—</span>
+        </div>
+      </div>
+      <!-- grade de livros -->
+
+
+        <!-- grade de livros -->
+        <div id="fmGrid" class="fm-grid"><!-- cards entram via JS --></div>
+      </div>
+    </div>
+          
+    <!-- Modal: editar meta -->
+    <div id="goalEditModal" class="modal hidden">
+      <div class="modal-card goal-card">
+        <div class="ge-head">
+          <div class="ge-title" id="geTitle">Meta mensal</div>
+          <button id="geClose" class="fm-x" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="ge-body">
+          <label for="geInput" class="ge-label">Livros:</label>
+          <input id="geInput" type="number" min="1" max="999"
+                class="ge-input" placeholder="ex: 5" />
+
+          <div id="geMessage" class="ge-message">Digite um número…</div>
+
+          <button id="geSave" class="ge-btn">Salvar meta</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Script principal -->
+    <script type="module" src="/src/js/app.js"></script>
+  
+      <!-- Confirm genérico -->
+    <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cf_title">
+      <div class="modal-card modal-small" tabindex="-1">
+        <h3 id="cf_title">Confirmar</h3>
+        <p id="cf_msg" style="margin:6px 0 12px"></p>
+        <div class="modal-actions">
+          <button id="cf_cancel" class="btn ghost" type="button">Cancelar</button>
+          <button id="cf_ok" class="btn danger" type="button">Apagar</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js");
+        });
+      }
+    </script>
+  </body>
+  </html>
